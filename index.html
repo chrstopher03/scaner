@@ -433,14 +433,23 @@ productos.forEach((producto,index)=>{
 });
 function mostrarProducto(codigo){
 
+    codigo = String(codigo).trim();
+
+    console.log("Código recibido:", codigo);
+
     const producto = productos.find(
-        p => p.codigo === codigo
+        p => String(p.codigo).trim() === codigo
     );
 
     if(!producto){
 
         document.getElementById("estado").textContent =
         "Producto no encontrado: " + codigo;
+
+        console.log(
+            "No encontrado. Códigos disponibles:",
+            productos.map(p => p.codigo)
+        );
 
         return;
     }
@@ -451,7 +460,6 @@ function mostrarProducto(codigo){
     const foto =
     document.getElementById("fotoProducto");
 
-    // Limpiar eventos anteriores
     foto.onload = null;
     foto.onerror = null;
 
@@ -482,12 +490,11 @@ function mostrarProducto(codigo){
 
     };
 
-    // Fuerza recarga de la imagen
     foto.src = "";
     foto.src =
     producto.imagen +
     "?v=" +
-    new Date().getTime();
+    Date.now();
 
     document.getElementById("nombreProducto").textContent =
     producto.nombre;
@@ -572,7 +579,16 @@ function iniciarCamara(){
         "Código detectado: " + codigo;
 
         mostrarProducto(codigo);
+Quagga.onDetected(function(data){
 
+    const codigo = data.codeResult.code;
+
+    console.log("Escaneado:", codigo);
+    console.log("Tipo:", typeof codigo);
+
+    mostrarProducto(codigo);
+
+});
     });
 
 }
