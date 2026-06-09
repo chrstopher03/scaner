@@ -171,11 +171,14 @@ svg{
 <button class="btn" onclick="detenerCamara()">
     ⛔ Detener Cámara
 </button>
+
 <div id="resultado">
 
     <div class="detalle">
 
-        <img id="fotoProducto" src="">
+        <img id="fotoProducto"
+             src="300.jpeg"
+             alt="Producto">
 
         <div class="info">
 
@@ -306,7 +309,6 @@ productos.forEach((producto,index)=>{
     );
 
 });
-
 function mostrarProducto(codigo){
 
     const producto = productos.find(
@@ -324,22 +326,46 @@ function mostrarProducto(codigo){
     document.getElementById("resultado").style.display =
     "block";
 
-    const foto = document.getElementById("fotoProducto");
+    const foto =
+    document.getElementById("fotoProducto");
+
+    // Limpiar eventos anteriores
+    foto.onload = null;
+    foto.onerror = null;
 
     foto.onload = function(){
-        console.log("Imagen cargada:", producto.imagen);
+
+        document.getElementById("estado").textContent =
+        "Producto encontrado";
+
+        console.log(
+            "Imagen cargada:",
+            producto.imagen
+        );
+
     };
 
     foto.onerror = function(){
-        console.error("No se encontró:", producto.imagen);
 
-        foto.src = "300.jpeg";
+        console.error(
+            "No se encontró:",
+            producto.imagen
+        );
+
+        this.src = "300.jpeg";
 
         document.getElementById("estado").textContent =
-        "No se encontró la imagen: " + producto.imagen;
+        "Imagen no encontrada: " +
+        producto.imagen;
+
     };
 
-    foto.src = producto.imagen;
+    // Fuerza recarga de la imagen
+    foto.src = "";
+    foto.src =
+    producto.imagen +
+    "?v=" +
+    new Date().getTime();
 
     document.getElementById("nombreProducto").textContent =
     producto.nombre;
