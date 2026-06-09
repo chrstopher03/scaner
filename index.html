@@ -810,22 +810,17 @@ svg{
 
 
 ];
-
 const catalogo = document.getElementById("catalogo");
 
 productos.forEach((producto,index)=>{
 
     const card = document.createElement("div");
-
     card.className = "card";
 
     card.innerHTML = `
         <h3>${producto.nombre}</h3>
-
         <svg id="barcode${index}"></svg>
-
         <p>${producto.codigo}</p>
-
         <button class="btn"
             onclick="descargarCodigo('barcode${index}','${producto.codigo}')">
             Descargar Código
@@ -844,93 +839,155 @@ productos.forEach((producto,index)=>{
             displayValue:false
         }
     );
-
 });
 
+/* =========================
+   🔊 SONIDO BEEP
+========================= */
+function beep(){
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "square";
+    osc.frequency.value = 800;
+
+    gain.gain.value = 0.1;
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.15);
+}
+
+/* =========================
+   📳 VIBRACIÓN
+========================= */
+function vibrar(){
+    if(navigator.vibrate){
+        navigator.vibrate(150);
+    }
+}
+
+/* =========================
+   📦 MOSTRAR PRODUCTO
+========================= */
 function mostrarProducto(codigo){
 
-    const producto =
-    productos.find(p => p.codigo === codigo);
+    const producto = productos.find(p => p.codigo === codigo);
 
     if(!producto) return;
 
-    document.getElementById("resultado").style.display="block";
+    document.getElementById("resultado").style.display = "block";
 
-    document.getElementById("fotoProducto").src =
-    producto.imagen;
+    document.getElementById("fotoProducto").src = producto.imagen;
+    document.getElementById("nombreProducto").textContent = producto.nombre;
+    document.getElementById("precioProducto").textContent = "C$ " + producto.precio;
+    document.getElementById("codigoProducto").textContent = "Código: " + producto.codigo;
 
-    document.getElementById("nombreProducto").textContent =
-    producto.nombre;
-
-    document.getElementById("precioProducto").textContent =
-    "C$ " + producto.precio;
-
-    document.getElementById("codigoProducto").textContent =
-    "Código: " + producto.codigo;
-
-    document.getElementById("resultado")
-    .scrollIntoView({
+    document.getElementById("resultado").scrollIntoView({
         behavior:"smooth"
     });
-
 }
 
+/* =========================
+   ⚡ CONTROL ESCÁNER
+========================= */
 let iniciado = false;
+let escaneando = true;
+let ultimoCodigo = "";
+let ultimoTiempo = 0;
 
+/* =========================
+   📷 INICIAR CÁMARA
+========================= */
 function iniciarCamara(){
 
     if(iniciado) return;
-
     iniciado = true;
 
-    document.getElementById("estado").textContent =
-    "Escáner activo...";
+    document.getElementById("estado").textContent = "Escáner activo...";
 
     Quagga.init({
 
-        inputStream:{
-            type:"LiveStream",
-            target:document.querySelector("#reader"),
-            constraints:{
-                facingMode:"environment"
+        inputStream: {
+            type: "LiveStream",
+            target: document.querySelector("#reader"),
+            constraints: {
+                facingMode: "environment",
+                width: 1280,
+                height: 720,
+                frameRate: { ideal: 60 }
             }
         },
 
-        decoder:{
-            readers:[
+        locator: {
+            halfSample: true,
+            patchSize: "small"
+        },
+
+        numOfWorkers: navigator.hardwareConcurrency || 4,
+
+        frequency: 15,
+
+        decoder: {
+            readers: [
                 "code_128_reader",
                 "ean_reader",
                 "ean_8_reader"
             ]
         }
 
-    },function(err){
+    }, function(err){
 
         if(err){
-
             console.error(err);
-
             document.getElementById("estado").textContent =
             "Error iniciando cámara";
-
             return;
         }
 
         Quagga.start();
-
     });
 
+    /* =========================
+       🚨 DETECCIÓN ULTRA RÁPIDA
+    ========================= */
     Quagga.onDetected(function(data){
 
+        if(!escaneando) return;
+
         const codigo = data.codeResult.code;
+        const ahora = Date.now();
+
+        // 🔥 anti duplicados
+        if(codigo === ultimoCodigo && (ahora - ultimoTiempo) < 1500){
+            return;
+        }
+
+        ultimoCodigo = codigo;
+        ultimoTiempo = ahora;
+
+        escaneando = false;
+
+        // 🔊 feedback inmediato
+        beep();
+        vibrar();
+
+        // ⛔ parar cámara (modo rápido real)
+        Quagga.stop();
+        iniciado = false;
 
         mostrarProducto(codigo);
 
+        // 🔁 reinicio automático después de 2.5s
+        setTimeout(()=>{
+            escaneando = true;
+            iniciarCamara();
+        }, 2500);
     });
-
 }
-
-
 async function descargarTodosPDF() {
 
     const { jsPDF } = window.jspdf;
