@@ -6,10 +6,8 @@
 
 <title>Escáner de Productos</title>
 <link rel="icon" href="300.jpeg">
-
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-<script src="https://unpkg.com/@ericblade/quagga2/dist/quagga.min.js"></script>
-
+<script src="JsBarcode.all.min.js"></script>
+<script src="quagga.min.js"></script>
 <style>
 
 *{
@@ -38,7 +36,16 @@ h1,h2{
     cursor:pointer;
     font-size:16px;
 }
+#reader video{
+    width:100% !important;
+    height:100% !important;
+    object-fit:cover;
+}
 
+#reader canvas{
+    width:100% !important;
+    height:100% !important;
+}
 .btn:hover{
     background:#1d4ed8;
 }
@@ -86,11 +93,13 @@ h1,h2{
 }
 
 .detalle img{
-    width:320px;
+    width:420px;
+    height:420px;
     max-width:100%;
     object-fit:contain;
+    background:white;
+    border-radius:12px;
 }
-
 .info{
     flex:1;
 }
@@ -159,7 +168,9 @@ svg{
 <div id="estado">
     Esperando inicio del escáner...
 </div>
-
+<button class="btn" onclick="detenerCamara()">
+    ⛔ Detener Cámara
+</button>
 <div id="resultado">
 
     <div class="detalle">
@@ -185,7 +196,6 @@ svg{
 <div class="grid" id="catalogo"></div>
 
 <script>
-
 const productos = [
 
 {
@@ -209,7 +219,6 @@ const productos = [
     imagen:"8.jpeg"
 },
 
-
 {
     codigo:"100004",
     nombre:"American Automatic transmission",
@@ -226,11 +235,10 @@ const productos = [
 
 {
     codigo:"100006",
-    nombre:"Mobil Delvac Extreme SAE 10W-30 API CK-4 ",
+    nombre:"Mobil Delvac Extreme SAE 10W-30 API CK-4",
     precio:"2400",
     imagen:"60.jpeg"
 },
-
 
 {
     codigo:"100007",
@@ -253,23 +261,22 @@ const productos = [
     imagen:"16.jpeg"
 },
 
-
 {
-    codigo:"1000010",
-    nombre:"TEC service Power Steering Fluid",
+    codigo:"100010",
+    nombre:"TEC Service Power Steering Fluid",
     precio:"200",
     imagen:"17.jpeg"
 },
 
 {
     codigo:"100011",
-    nombre:"Havoline 2-cicle",
+    nombre:"Havoline 2-cycle",
     precio:"350",
     imagen:"18.jpeg"
 },
 
 {
-    codigo:"1000012",
+    codigo:"100012",
     nombre:"Auto Super Heavy Duty Azul",
     precio:"90",
     imagen:"19.jpeg"
@@ -287,27 +294,25 @@ productos.forEach((producto,index)=>{
 
     card.innerHTML = `
         <h3>${producto.nombre}</h3>
-
         <svg id="barcode${index}"></svg>
-
         <p>${producto.codigo}</p>
 
         <button class="btn"
-            onclick="descargarCodigo('barcode${index}','${producto.codigo}')">
+        onclick="descargarCodigo('barcode${index}','${producto.codigo}')">
             Descargar Código
         </button>
     `;
 
     catalogo.appendChild(card);
 
-    JsBarcode(
-        `#barcode${index}`,
+    JsBarcode(`#barcode${index}`,
         producto.codigo,
         {
             format:"CODE128",
             width:2,
             height:80,
-            displayValue:false
+            margin:10,
+            displayValue:true
         }
     );
 
@@ -318,9 +323,16 @@ function mostrarProducto(codigo){
     const producto =
     productos.find(p => p.codigo === codigo);
 
-    if(!producto) return;
+    if(!producto){
 
-    document.getElementById("resultado").style.display="block";
+        document.getElementById("estado").textContent =
+        "Producto no encontrado: " + codigo;
+
+        return;
+    }
+
+    document.getElementById("resultado").style.display =
+    "block";
 
     document.getElementById("fotoProducto").src =
     producto.imagen;
@@ -342,6 +354,7 @@ function mostrarProducto(codigo){
 }
 
 let iniciado = false;
+let ultimoCodigo = "";
 
 function iniciarCamara(){
 
@@ -358,8 +371,15 @@ function iniciarCamara(){
             type:"LiveStream",
             target:document.querySelector("#reader"),
             constraints:{
-                facingMode:"environment"
+                facingMode:"environment",
+                width:{min:640},
+                height:{min:480}
             }
+        },
+
+        locator:{
+            patchSize:"large",
+            halfSample:false
         },
 
         decoder:{
@@ -379,6 +399,8 @@ function iniciarCamara(){
             document.getElementById("estado").textContent =
             "Error iniciando cámara";
 
+            iniciado = false;
+
             return;
         }
 
@@ -390,15 +412,36 @@ function iniciarCamara(){
 
         const codigo = data.codeResult.code;
 
+        if(codigo === ultimoCodigo) return;
+
+        ultimoCodigo = codigo;
+
+        document.getElementById("estado").textContent =
+        "Código detectado: " + codigo;
+
         mostrarProducto(codigo);
 
     });
 
 }
 
+function detenerCamara(){
+
+    if(!iniciado) return;
+
+    Quagga.stop();
+
+    iniciado = false;
+
+    document.getElementById("estado").textContent =
+    "Cámara detenida";
+
+}
+
 function descargarCodigo(svgId,nombre){
 
-    const svg = document.getElementById(svgId);
+    const svg =
+    document.getElementById(svgId);
 
     const datos =
     new XMLSerializer().serializeToString(svg);
@@ -414,28 +457,36 @@ function descargarCodigo(svgId,nombre){
 
     img.onload = function(){
 
-        canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.width =
+        img.width;
+
+        canvas.height =
+        img.height;
 
         ctx.drawImage(img,0,0);
 
         const enlace =
         document.createElement("a");
 
-        enlace.download = nombre + ".png";
+        enlace.download =
+        nombre + ".png";
 
         enlace.href =
         canvas.toDataURL("image/png");
 
         enlace.click();
+
     };
 
     img.src =
     "data:image/svg+xml;base64," +
     btoa(unescape(encodeURIComponent(datos)));
+
 }
 
 function descargarTodos(){
+
+    let retraso = 0;
 
     productos.forEach((producto,index)=>{
 
@@ -446,7 +497,9 @@ function descargarTodos(){
                 producto.codigo
             );
 
-        },index*500);
+        },retraso);
+
+        retraso += 700;
 
     });
 
