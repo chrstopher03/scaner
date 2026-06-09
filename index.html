@@ -179,39 +179,35 @@ svg{
 <body>
 
 <h1>Escáner de Productos</h1>
-
 <div class="controles">
     <button class="btn" onclick="iniciarCamara()">
         📷 Iniciar Cámara
     </button>
 
-  <button class="btn" onclick="descargarTodosPDF()">
-    ⬇ Descargar PDF
-</button>
+    <button class="btn" onclick="descargarTodosPDF()">
+        ⬇ Descargar PDF
+    </button>
 
     <button class="btn" onclick="detenerCamara()">
-    ⛔ Detener Cámara
-</button>
+        ⛔ Detener Cámara
+    </button>
 
-<button class="btn" id="btnInstalar" style="display:none;">
-📲 Instalar App
-</button>
+    <button class="btn" id="btnInstalar" style="display:none;">
+        📲 Instalar App
+    </button>
 
-
+    <button onclick="toggleFlash()" class="btn">
+        🔦 Flash
+    </button>
 </div>
+
 <div id="reader">
     <div id="scanline"></div>
 </div>
 
-<button onclick="toggleFlash()" class="btn">
-    🔦 Flash
-</button>
-<div id="reader"></div>
-
 <div id="estado">
     Esperando inicio del escáner...
 </div>
-
 
 <div id="resultado">
 
