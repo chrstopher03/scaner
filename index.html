@@ -438,25 +438,22 @@ productos.forEach((producto,index)=>{
 /* =========================
    MOSTRAR PRODUCTO
 ========================= */
-
 function mostrarProducto(codigo){
 
     codigo = String(codigo)
-        .trim()
-        .replace(/\s+/g,"");
-
-    console.log("Código recibido:", codigo);
+    .trim()
+    .replace(/\s+/g,"");
 
     const producto = productos.find(
-        p => String(p.codigo).trim() === codigo
+        p => String(p.codigo)
+        .trim()
+        .replace(/\s+/g,"") === codigo
     );
 
     if(!producto){
 
         document.getElementById("estado").textContent =
         "Producto no encontrado: " + codigo;
-
-        console.log("No encontrado:", codigo);
 
         return;
     }
@@ -468,12 +465,7 @@ function mostrarProducto(codigo){
     document.getElementById("fotoProducto");
 
     foto.onerror = function(){
-
         this.src = "300.jpeg";
-
-        document.getElementById("estado").textContent =
-        "Imagen no encontrada";
-
     };
 
     foto.src =
@@ -493,51 +485,54 @@ function mostrarProducto(codigo){
     document.getElementById("estado").textContent =
     "Producto encontrado";
 
-    document.getElementById("resultado")
-    .scrollIntoView({
-        behavior:"smooth"
-    });
-
 }
-
 /* =========================
-   ESCÁNER
+   ESCÁNER MEJORADO
 ========================= */
 
 let iniciado = false;
 let ultimoCodigo = "";
+let detectorRegistrado = false;
 
 function iniciarCamara(){
 
     if(iniciado) return;
 
-    iniciado = true;
-
     document.getElementById("estado").textContent =
-    "Escáner activo...";
+    "Iniciando cámara...";
 
     Quagga.init({
 
         inputStream:{
+            name:"Live",
             type:"LiveStream",
             target:document.querySelector("#reader"),
             constraints:{
-                facingMode:"environment"
+                facingMode:"environment",
+                width:{min:640},
+                height:{min:480}
             }
         },
 
         locator:{
-            patchSize:"medium",
-            halfSample:true
+            patchSize:"large",
+            halfSample:false
         },
+
+        numOfWorkers:4,
 
         decoder:{
             readers:[
-                "code_128_reader"
+                "code_128_reader",
+                "ean_reader",
+                "ean_8_reader",
+                "upc_reader",
+                "upc_e_reader"
             ]
         },
 
-        locate:true
+        locate:true,
+        frequency:10
 
     },function(err){
 
@@ -548,22 +543,32 @@ function iniciarCamara(){
             document.getElementById("estado").textContent =
             "Error iniciando cámara";
 
-            iniciado = false;
-
             return;
         }
 
+        iniciado = true;
+
         Quagga.start();
+
+        document.getElementById("estado").textContent =
+        "Escáner activo";
 
     });
 
-    Quagga.offDetected();
+    if(detectorRegistrado) return;
+
+    detectorRegistrado = true;
 
     Quagga.onDetected(function(data){
 
+        if(!data || !data.codeResult) return;
+
         let codigo =
         String(data.codeResult.code)
-        .trim();
+        .trim()
+        .replace(/\s+/g,"");
+
+        if(!codigo) return;
 
         if(codigo === ultimoCodigo){
             return;
@@ -571,29 +576,54 @@ function iniciarCamara(){
 
         ultimoCodigo = codigo;
 
-        console.log("Escaneado:", codigo);
+        console.log("Código detectado:", codigo);
 
         document.getElementById("estado").textContent =
         "Código detectado: " + codigo;
 
         mostrarProducto(codigo);
 
+        navigator.vibrate?.(150);
+
         setTimeout(()=>{
             ultimoCodigo = "";
-        },1000);
+        },1500);
 
     });
 
 }
+function descargarCodigo(id,codigo){
 
+    const svg =
+    document.getElementById(id);
+
+    const datos =
+    new XMLSerializer().serializeToString(svg);
+
+    const enlace =
+    document.createElement("a");
+
+    enlace.href =
+    "data:image/svg+xml;charset=utf-8," +
+    encodeURIComponent(datos);
+
+    enlace.download =
+    codigo + ".svg";
+
+    enlace.click();
+
+}
 function detenerCamara(){
 
     if(!iniciado) return;
 
-    Quagga.stop();
+    try{
+        Quagga.stop();
+    }catch(e){
+        console.log(e);
+    }
 
     iniciado = false;
-
     ultimoCodigo = "";
 
     document.getElementById("estado").textContent =
