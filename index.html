@@ -271,6 +271,7 @@ const productos = [
     imagen: BASE_IMG + "19.jpeg"
 }
 ];
+
 const catalogo = document.getElementById("catalogo");
 
 productos.forEach((producto,index)=>{
@@ -292,7 +293,8 @@ productos.forEach((producto,index)=>{
 
     catalogo.appendChild(card);
 
-    JsBarcode(`#barcode${index}`,
+    JsBarcode(
+        `#barcode${index}`,
         producto.codigo,
         {
             format:"CODE128",
@@ -307,8 +309,9 @@ productos.forEach((producto,index)=>{
 
 function mostrarProducto(codigo){
 
-    const producto =
-    productos.find(p => p.codigo === codigo);
+    const producto = productos.find(
+        p => p.codigo === codigo
+    );
 
     if(!producto){
 
@@ -321,8 +324,22 @@ function mostrarProducto(codigo){
     document.getElementById("resultado").style.display =
     "block";
 
-    document.getElementById("fotoProducto").src =
-    producto.imagen;
+    const foto = document.getElementById("fotoProducto");
+
+    foto.onload = function(){
+        console.log("Imagen cargada:", producto.imagen);
+    };
+
+    foto.onerror = function(){
+        console.error("No se encontró:", producto.imagen);
+
+        foto.src = "300.jpeg";
+
+        document.getElementById("estado").textContent =
+        "No se encontró la imagen: " + producto.imagen;
+    };
+
+    foto.src = producto.imagen;
 
     document.getElementById("nombreProducto").textContent =
     producto.nombre;
@@ -444,11 +461,8 @@ function descargarCodigo(svgId,nombre){
 
     img.onload = function(){
 
-        canvas.width =
-        img.width;
-
-        canvas.height =
-        img.height;
+        canvas.width = img.width;
+        canvas.height = img.height;
 
         ctx.drawImage(img,0,0);
 
