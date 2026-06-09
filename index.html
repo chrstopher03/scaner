@@ -7,7 +7,7 @@
 <title>Escáner de Productos</title>
 <link rel="icon" href="300.jpeg">
 <link rel="manifest" href="manifest.json">
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <meta name="theme-color" content="#2563eb">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -165,9 +165,9 @@ svg{
         📷 Iniciar Cámara
     </button>
 
-    <button class="btn" onclick="descargarTodos()">
-        ⬇ Descargar Todos los Códigos
-    </button>
+  <button class="btn" onclick="descargarTodosPDF()">
+    ⬇ Descargar PDF
+</button>
 
     <button class="btn" onclick="detenerCamara()">
     ⛔ Detener Cámara
@@ -285,6 +285,115 @@ const productos = [
     nombre:"Auto Super Heavy Duty Azul",
     precio:"90",
     imagen: BASE_IMG + "19.jpeg"
+},
+
+{
+    codigo:"100013",
+    nombre:"Auto Super Heavy Duty",
+    precio:"90",
+    imagen: BASE_IMG + "20.jpeg"
+},
+{
+    codigo:"100014",
+    nombre:"Movil delvac 10W-30",
+    precio:"380",
+    imagen: BASE_IMG + "21.jpeg"
+},
+{
+    codigo:"100015",
+    nombre:"Movil delvac 15W-40",
+    precio:"370",
+    imagen: BASE_IMG + "22.jpeg"
+},
+{
+    codigo:"100016",
+    nombre:"Movil delvac 15W-40.",
+    precio:"300",
+    imagen: BASE_IMG + "23.jpeg"
+},
+{
+    codigo:"100017",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100018",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100019",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100020",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100021",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100022",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100023",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100024",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100025",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100026",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100027",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100028",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100029",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
+},
+{
+    codigo:"100030",
+    nombre:"l",
+    precio:"",
+    imagen: BASE_IMG + ""
 }
 ];
 
@@ -480,68 +589,103 @@ function detenerCamara(){
     "Cámara detenida";
 
 }
+async function descargarTodosPDF() {
 
-function descargarCodigo(svgId,nombre){
+    const { jsPDF } = window.jspdf;
 
-    const svg =
-    document.getElementById(svgId);
-
-    const datos =
-    new XMLSerializer().serializeToString(svg);
-
-    const canvas =
-    document.createElement("canvas");
-
-    const ctx =
-    canvas.getContext("2d");
-
-    const img =
-    new Image();
-
-    img.onload = function(){
-
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        ctx.drawImage(img,0,0);
-
-        const enlace =
-        document.createElement("a");
-
-        enlace.download =
-        nombre + ".png";
-
-        enlace.href =
-        canvas.toDataURL("image/png");
-
-        enlace.click();
-
-    };
-
-    img.src =
-    "data:image/svg+xml;base64," +
-    btoa(unescape(encodeURIComponent(datos)));
-
-}
-
-function descargarTodos(){
-
-    let retraso = 0;
-
-    productos.forEach((producto,index)=>{
-
-        setTimeout(()=>{
-
-            descargarCodigo(
-                "barcode"+index,
-                producto.codigo
-            );
-
-        },retraso);
-
-        retraso += 700;
-
+    const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
     });
+
+    const anchoEtiqueta = 60;
+    const altoEtiqueta = 25;
+
+    let x = 10;
+    let y = 10;
+
+    const columnas = 3;
+
+    for (let i = 0; i < productos.length; i++) {
+
+        const svg = document.getElementById("barcode" + i);
+
+        const datos =
+        new XMLSerializer().serializeToString(svg);
+
+        const img = new Image();
+
+        await new Promise(resolve => {
+
+            img.onload = () => {
+
+                const canvas =
+                document.createElement("canvas");
+
+                const ctx =
+                canvas.getContext("2d");
+
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                ctx.drawImage(img, 0, 0);
+
+                const png =
+                canvas.toDataURL("image/png");
+
+                pdf.addImage(
+                    png,
+                    "PNG",
+                    x,
+                    y,
+                    anchoEtiqueta,
+                    altoEtiqueta
+                );
+
+                pdf.setFontSize(8);
+
+                pdf.text(
+                    productos[i].codigo,
+                    x + 15,
+                    y + altoEtiqueta + 4
+                );
+
+                resolve();
+
+            };
+
+            img.src =
+            "data:image/svg+xml;base64," +
+            btoa(unescape(encodeURIComponent(datos)));
+
+        });
+
+        const columna = (i + 1) % columnas;
+
+        if (columna === 0) {
+
+            x = 10;
+            y += 35;
+
+        } else {
+
+            x += 65;
+
+        }
+
+        if (y > 250) {
+
+            pdf.addPage();
+
+            x = 10;
+            y = 10;
+
+        }
+
+    }
+
+    pdf.save("codigos_barras.pdf");
 
 }
 /* =========================
