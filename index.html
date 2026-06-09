@@ -211,128 +211,42 @@ svg{
 
 <div class="grid" id="catalogo"></div>
 
-<script>const BASE_IMG = "./";
+<script>
+const BASE_IMG = "./";
 
 /* =========================
-   PRODUCTOS
+   PRODUCTOS (CORREGIDO)
 ========================= */
 
 const productos = [
-{
-    codigo:"100001",
-    nombre:"Mobil Parmazone",
-    precio:"780",
-    imagen: BASE_IMG + "6.jpeg"
-},
-{
-    codigo:"100002",
-    nombre:"Mobil Heavy Duty",
-    precio:"780",
-    imagen: BASE_IMG + "7.jpeg"
-},
-{
-    codigo:"100003",
-    nombre:"Mobil ATF D/M",
-    precio:"350",
-    imagen: BASE_IMG + "8.jpeg"
-},
-{
-    codigo:"100004",
-    nombre:"American Automatic transmission",
-    precio:"180",
-    imagen: BASE_IMG + "11.jpeg"
-},
-{
-    codigo:"100005",
-    nombre:"Mobil Delvac Extreme SAE 15W-40 API CK-4.",
-    precio:"1700",
-    imagen: BASE_IMG + "12.jpeg"
-},
-{
-    codigo:"100006",
-    nombre:"Mobil Delvac Extreme SAE 10W-30 API CK-4",
-    precio:"2400",
-    imagen: BASE_IMG + "60.jpeg"
-},
-{
-    codigo:"100007",
-    nombre:"Motor Oil SAE 50",
-    precio:"140",
-    imagen: BASE_IMG + "14.jpeg"
-},
-{
-    codigo:"100008",
-    nombre:"Mobil Super moto",
-    precio:"300",
-    imagen: BASE_IMG + "15.jpeg"
-},
-{
-    codigo:"100009",
-    nombre:"Havoline SAE 20W-50",
-    precio:"280",
-    imagen: BASE_IMG + "16.jpeg"
-},
-{
-    codigo:"100010",
-    nombre:"TEC Service Power Steering Fluid",
-    precio:"200",
-    imagen: BASE_IMG + "17.jpeg"
-},
-{
-    codigo:"100011",
-    nombre:"Havoline 2-cycle",
-    precio:"350",
-    imagen: BASE_IMG + "18.jpeg"
-},
-{
-    codigo:"100012",
-    nombre:"Auto Super Heavy Duty Azul",
-    precio:"90",
-    imagen: BASE_IMG + "19.jpeg"
-},
-{
-    codigo:"100013",
-    nombre:"Auto Super Heavy Duty Azul",
-    precio:"90",
-    imagen: BASE_IMG + "20.jpeg"
-},
-
-
-{
-    codigo:"100014",
-    nombre:"Auto Super Heavy Duty Azul",
-    precio:"90",
-    imagen: BASE_IMG + "21.jpeg"
-},
-
-{
-    codigo:"100014",
-    nombre:"Auto Super Heavy Duty",
-    precio:"380",
-    imagen: BASE_IMG + "21.jpeg"
-},
-{
-    codigo:"100015",
-    nombre:"Movil delvac 15W-40",
-    precio:"370",
-    imagen: BASE_IMG + "22.jpeg"
-},
-{
-    codigo:"100016",
-    nombre:"Movil delvac 15W-40.",
-    precio:"300",
-    imagen: BASE_IMG + "23.jpeg"
-}
+{ codigo:"100001", nombre:"Mobil Parmazone", precio:"780", imagen: BASE_IMG + "6.jpeg" },
+{ codigo:"100002", nombre:"Mobil Heavy Duty", precio:"780", imagen: BASE_IMG + "7.jpeg" },
+{ codigo:"100003", nombre:"Mobil ATF D/M", precio:"350", imagen: BASE_IMG + "8.jpeg" },
+{ codigo:"100004", nombre:"American Automatic transmission", precio:"180", imagen: BASE_IMG + "11.jpeg" },
+{ codigo:"100005", nombre:"Mobil Delvac Extreme SAE 15W-40 API CK-4.", precio:"1700", imagen: BASE_IMG + "12.jpeg" },
+{ codigo:"100006", nombre:"Mobil Delvac Extreme SAE 10W-30 API CK-4", precio:"2400", imagen: BASE_IMG + "60.jpeg" },
+{ codigo:"100007", nombre:"Motor Oil SAE 50", precio:"140", imagen: BASE_IMG + "14.jpeg" },
+{ codigo:"100008", nombre:"Mobil Super moto", precio:"300", imagen: BASE_IMG + "15.jpeg" },
+{ codigo:"100009", nombre:"Havoline SAE 20W-50", precio:"280", imagen: BASE_IMG + "16.jpeg" },
+{ codigo:"100010", nombre:"TEC Service Power Steering Fluid", precio:"200", imagen: BASE_IMG + "17.jpeg" },
+{ codigo:"100011", nombre:"Havoline 2-cycle", precio:"350", imagen: BASE_IMG + "18.jpeg" },
+{ codigo:"100012", nombre:"Auto Super Heavy Duty Azul", precio:"90", imagen: BASE_IMG + "19.jpeg" },
+{ codigo:"100013", nombre:"Auto Super Heavy Duty Azul", precio:"90", imagen: BASE_IMG + "20.jpeg" },
+{ codigo:"100014", nombre:"Auto Super Heavy Duty", precio:"90", imagen: BASE_IMG + "21.jpeg" },
+{ codigo:"100015", nombre:"Movil delvac 15W-40", precio:"370", imagen: BASE_IMG + "22.jpeg" },
+{ codigo:"100016", nombre:"Movil delvac 15W-40.", precio:"300", imagen: BASE_IMG + "23.jpeg" }
 ];
 
 const catalogo = document.getElementById("catalogo");
 
 /* =========================
-   NORMALIZAR CÓDIGO
+   NORMALIZADOR (CLAVE)
 ========================= */
-
 function norm(c){
-    return String(c).trim().replace(/\s+/g,"");
+    return String(c)
+        .trim()
+        .replace(/\s+/g,"")
+        .replace(/^0+/, ""); // quita ceros basura del escáner
 }
 
 /* =========================
@@ -368,22 +282,18 @@ productos.forEach((producto,index)=>{
 });
 
 /* =========================
-   MOSTRAR PRODUCTO
+   MOSTRAR PRODUCTO (FIX REAL)
 ========================= */
 
 function mostrarProducto(codigo){
 
-    codigo = norm(codigo);
+    const code = norm(codigo);
 
-    const producto = productos.find(
-        p => norm(p.codigo) === codigo
-    );
+    const producto = productos.find(p => norm(p.codigo) === code);
 
     if(!producto){
-
         document.getElementById("estado").textContent =
-        "No encontrado: " + codigo;
-
+        "❌ No encontrado: " + codigo;
         return;
     }
 
@@ -403,13 +313,13 @@ function mostrarProducto(codigo){
     document.getElementById("codigoProducto").textContent = producto.codigo;
 
     document.getElementById("estado").textContent =
-    "Producto encontrado";
+    "✔ Producto encontrado";
 
     resultado.scrollIntoView({behavior:"smooth"});
 }
 
 /* =========================
-   ESCÁNER (FIX DEFINITIVO)
+   ESCÁNER (SIN DOBLES EVENTOS)
 ========================= */
 
 let iniciado = false;
@@ -442,7 +352,6 @@ function iniciarCamara(){
             readers:[
                 "code_128_reader",
                 "ean_reader",
-                "ean_8_reader",
                 "upc_reader"
             ]
         },
@@ -462,10 +371,9 @@ function iniciarCamara(){
         iniciado = true;
 
         document.getElementById("estado").textContent =
-        "Escáner activo";
+        "Escáner activo ✔";
     });
 
-    /* evitar múltiples listeners */
     if(listenerActivo) return;
     listenerActivo = true;
 
@@ -473,7 +381,7 @@ function iniciarCamara(){
 
         if(!data?.codeResult?.code) return;
 
-        let codigo = norm(data.codeResult.code);
+        const codigo = norm(data.codeResult.code);
 
         if(codigo === ultimoCodigo) return;
 
