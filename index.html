@@ -195,95 +195,82 @@ svg{
 
 <div class="grid" id="catalogo"></div>
 
-<script>
-const productos = [
+<script>const BASE_IMG = "./";
 
+const productos = [
 {
     codigo:"100001",
     nombre:"Mobil Parmazone",
     precio:"780",
-    imagen:"6.jpeg"
+    imagen: BASE_IMG + "6.jpeg"
 },
-
 {
     codigo:"100002",
     nombre:"Mobil Heavy Duty",
     precio:"780",
-    imagen:"7.jpeg"
+    imagen: BASE_IMG + "7.jpeg"
 },
-
 {
     codigo:"100003",
     nombre:"Mobil ATF D/M",
     precio:"350",
-    imagen:"8.jpeg"
+    imagen: BASE_IMG + "8.jpeg"
 },
-
 {
     codigo:"100004",
     nombre:"American Automatic transmission",
     precio:"180",
-    imagen:"11.jpeg"
+    imagen: BASE_IMG + "11.jpeg"
 },
-
 {
     codigo:"100005",
     nombre:"Mobil Delvac Extreme SAE 15W-40 API CK-4.",
     precio:"1700",
-    imagen:"12.jpeg"
+    imagen: BASE_IMG + "12.jpeg"
 },
-
 {
     codigo:"100006",
     nombre:"Mobil Delvac Extreme SAE 10W-30 API CK-4",
     precio:"2400",
-    imagen:"60.jpeg"
+    imagen: BASE_IMG + "60.jpeg"
 },
-
 {
     codigo:"100007",
     nombre:"Motor Oil SAE 50",
     precio:"140",
-    imagen:"14.jpeg"
+    imagen: BASE_IMG + "14.jpeg"
 },
-
 {
     codigo:"100008",
     nombre:"Mobil Super moto",
     precio:"300",
-    imagen:"15.jpeg"
+    imagen: BASE_IMG + "15.jpeg"
 },
-
 {
     codigo:"100009",
     nombre:"Havoline SAE 20W-50",
     precio:"280",
-    imagen:"16.jpeg"
+    imagen: BASE_IMG + "16.jpeg"
 },
-
 {
     codigo:"100010",
     nombre:"TEC Service Power Steering Fluid",
     precio:"200",
-    imagen:"17.jpeg"
+    imagen: BASE_IMG + "17.jpeg"
 },
-
 {
     codigo:"100011",
     nombre:"Havoline 2-cycle",
     precio:"350",
-    imagen:"18.jpeg"
+    imagen: BASE_IMG + "18.jpeg"
 },
-
 {
     codigo:"100012",
     nombre:"Auto Super Heavy Duty Azul",
     precio:"90",
-    imagen:"19.jpeg"
+    imagen: BASE_IMG + "19.jpeg"
 }
-
 ];
-
 const catalogo = document.getElementById("catalogo");
 
 productos.forEach((producto,index)=>{
