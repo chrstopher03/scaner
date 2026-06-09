@@ -155,7 +155,25 @@ h1,h2{
 svg{
     width:100%;
 }
+#reader {
+    position: relative;
+    overflow: hidden;
+}
 
+#scanline {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: red;
+    animation: scanMove 1.5s linear infinite;
+    z-index: 999;
+    box-shadow: 0 0 10px red;
+}
+
+@keyframes scanMove {
+    0% { top: 0%; }
+    100% { top: 100%; }
+}
 </style>
 </head>
 <body>
@@ -178,8 +196,16 @@ svg{
 <button class="btn" id="btnInstalar" style="display:none;">
 📲 Instalar App
 </button>
+
+
+</div>
+<div id="reader">
+    <div id="scanline"></div>
 </div>
 
+<button onclick="toggleFlash()" class="btn">
+    🔦 Flash
+</button>
 <div id="reader"></div>
 
 <div id="estado">
@@ -809,8 +835,7 @@ svg{
 
 
 
-];
-const catalogo = document.getElementById("catalogo");
+];const catalogo = document.getElementById("catalogo");
 
 /* =========================
    📦 CATÁLOGO + BARCODES
@@ -868,9 +893,9 @@ function mostrarProducto(codigo){
 
 
 /* =========================
-   🔊 BEEP + VIBRACIÓN
+   🔊 SONIDOS
 ========================= */
-function beep(){
+function beepOk(){
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -887,6 +912,23 @@ function beep(){
     osc.stop(ctx.currentTime + 0.12);
 }
 
+function beepError(){
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sawtooth";
+    osc.frequency.value = 220;
+
+    gain.gain.value = 0.12;
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+}
+
 function vibrar(){
     if(navigator.vibrate){
         navigator.vibrate(120);
@@ -895,12 +937,71 @@ function vibrar(){
 
 
 /* =========================
-   ⚡ CONTROL ESCÁNER
+   🔦 FLASH
+========================= */
+let flash = false;
+
+async function toggleFlash(){
+
+    try{
+
+        const video = document.querySelector("#reader video");
+        if(!video) return;
+
+        const stream = video.srcObject;
+        const track = stream.getVideoTracks()[0];
+
+        const caps = track.getCapabilities();
+
+        if(!caps.torch){
+            alert("Tu dispositivo no soporta flash");
+            return;
+        }
+
+        flash = !flash;
+
+        await track.applyConstraints({
+            advanced: [{ torch: flash }]
+        });
+
+    }catch(e){
+        console.log("Flash error", e);
+    }
+}
+
+
+/* =========================
+   ⚡ ESCÁNER CONTROL
 ========================= */
 let iniciado = false;
 let bloqueado = false;
 let ultimoCodigo = "";
 let ultimoTiempo = 0;
+let timeoutError = null;
+
+
+/* =========================
+   🚨 ERROR SI NO DETECTA
+========================= */
+function resetErrorTimer(){
+
+    clearTimeout(timeoutError);
+
+    timeoutError = setTimeout(()=>{
+
+        if(iniciado && !bloqueado){
+
+            beepError();
+            vibrar();
+
+            document.getElementById("estado").textContent =
+            "No se detecta código...";
+
+            resetErrorTimer();
+        }
+
+    }, 3000);
+}
 
 
 /* =========================
@@ -928,13 +1029,13 @@ function iniciarCamara(){
         },
 
         locator: {
-            halfSample: true,   // 🔥 velocidad clave
-            patchSize: "tiny"   // 🔥 máximo rendimiento
+            halfSample: true,
+            patchSize: "tiny"
         },
 
         numOfWorkers: navigator.hardwareConcurrency || 4,
 
-        frequency: 25, // 🔥 MÁS RÁPIDO POSIBLE EN QUAGGA
+        frequency: 25,
 
         decoder: {
             readers: [
@@ -954,11 +1055,12 @@ function iniciarCamara(){
         }
 
         Quagga.start();
+        resetErrorTimer();
     });
 
 
     /* =========================
-       🚨 DETECCIÓN INSTANTÁNEA
+       🚨 DETECCIÓN
     ========================= */
     Quagga.onDetected(function(data){
 
@@ -967,7 +1069,8 @@ function iniciarCamara(){
         const codigo = data.codeResult.code;
         const ahora = Date.now();
 
-        // 🔥 anti duplicado fuerte
+        resetErrorTimer();
+
         if(codigo === ultimoCodigo && (ahora - ultimoTiempo) < 1200){
             return;
         }
@@ -977,22 +1080,20 @@ function iniciarCamara(){
 
         bloqueado = true;
 
-        // 🔊 feedback inmediato
-        beep();
+        beepOk();
         vibrar();
 
-        // ⛔ parar cámara (modo caja real)
         Quagga.stop();
         iniciado = false;
 
         mostrarProducto(codigo);
 
-        // 🔁 reinicio rápido automático
         setTimeout(()=>{
             iniciarCamara();
         }, 900);
     });
-}async function descargarTodosPDF() {
+}
+async function descargarTodosPDF() {
 
     const { jsPDF } = window.jspdf;
 
