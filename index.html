@@ -396,8 +396,11 @@ const productos = [
     imagen: BASE_IMG + ""
 }
 ];
-
 const catalogo = document.getElementById("catalogo");
+
+/* =========================
+   GENERAR CATÁLOGO
+========================= */
 
 productos.forEach((producto,index)=>{
 
@@ -423,17 +426,24 @@ productos.forEach((producto,index)=>{
         producto.codigo,
         {
             format:"CODE128",
-            width:2,
-            height:80,
-            margin:10,
+            width:3,
+            height:100,
+            margin:20,
             displayValue:true
         }
     );
 
 });
+
+/* =========================
+   MOSTRAR PRODUCTO
+========================= */
+
 function mostrarProducto(codigo){
 
-    codigo = String(codigo).trim();
+    codigo = String(codigo)
+        .trim()
+        .replace(/\s+/g,"");
 
     console.log("Código recibido:", codigo);
 
@@ -446,10 +456,7 @@ function mostrarProducto(codigo){
         document.getElementById("estado").textContent =
         "Producto no encontrado: " + codigo;
 
-        console.log(
-            "No encontrado. Códigos disponibles:",
-            productos.map(p => p.codigo)
-        );
+        console.log("No encontrado:", codigo);
 
         return;
     }
@@ -460,37 +467,15 @@ function mostrarProducto(codigo){
     const foto =
     document.getElementById("fotoProducto");
 
-    foto.onload = null;
-    foto.onerror = null;
-
-    foto.onload = function(){
-
-        document.getElementById("estado").textContent =
-        "Producto encontrado";
-
-        console.log(
-            "Imagen cargada:",
-            producto.imagen
-        );
-
-    };
-
     foto.onerror = function(){
-
-        console.error(
-            "No se encontró:",
-            producto.imagen
-        );
 
         this.src = "300.jpeg";
 
         document.getElementById("estado").textContent =
-        "Imagen no encontrada: " +
-        producto.imagen;
+        "Imagen no encontrada";
 
     };
 
-    foto.src = "";
     foto.src =
     producto.imagen +
     "?v=" +
@@ -505,12 +490,19 @@ function mostrarProducto(codigo){
     document.getElementById("codigoProducto").textContent =
     "Código: " + producto.codigo;
 
+    document.getElementById("estado").textContent =
+    "Producto encontrado";
+
     document.getElementById("resultado")
     .scrollIntoView({
         behavior:"smooth"
     });
 
 }
+
+/* =========================
+   ESCÁNER
+========================= */
 
 let iniciado = false;
 let ultimoCodigo = "";
@@ -530,24 +522,22 @@ function iniciarCamara(){
             type:"LiveStream",
             target:document.querySelector("#reader"),
             constraints:{
-                facingMode:"environment",
-                width:{min:640},
-                height:{min:480}
+                facingMode:"environment"
             }
         },
 
         locator:{
-            patchSize:"large",
-            halfSample:false
+            patchSize:"medium",
+            halfSample:true
         },
 
         decoder:{
             readers:[
-                "code_128_reader",
-                "ean_reader",
-                "ean_8_reader"
+                "code_128_reader"
             ]
-        }
+        },
+
+        locate:true
 
     },function(err){
 
@@ -567,28 +557,31 @@ function iniciarCamara(){
 
     });
 
+    Quagga.offDetected();
+
     Quagga.onDetected(function(data){
 
-        const codigo = data.codeResult.code;
+        let codigo =
+        String(data.codeResult.code)
+        .trim();
 
-        if(codigo === ultimoCodigo) return;
+        if(codigo === ultimoCodigo){
+            return;
+        }
 
         ultimoCodigo = codigo;
+
+        console.log("Escaneado:", codigo);
 
         document.getElementById("estado").textContent =
         "Código detectado: " + codigo;
 
         mostrarProducto(codigo);
-Quagga.onDetected(function(data){
 
-    const codigo = data.codeResult.code;
+        setTimeout(()=>{
+            ultimoCodigo = "";
+        },1000);
 
-    console.log("Escaneado:", codigo);
-    console.log("Tipo:", typeof codigo);
-
-    mostrarProducto(codigo);
-
-});
     });
 
 }
@@ -601,10 +594,13 @@ function detenerCamara(){
 
     iniciado = false;
 
+    ultimoCodigo = "";
+
     document.getElementById("estado").textContent =
     "Cámara detenida";
 
 }
+
 async function descargarTodosPDF() {
 
     const { jsPDF } = window.jspdf;
