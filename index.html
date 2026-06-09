@@ -6,8 +6,15 @@
 
 <title>Escáner de Productos</title>
 <link rel="icon" href="300.jpeg">
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script src="JsBarcode.all.min.js"></script>
 <script src="quagga.min.js"></script>
+
 <style>
 
 *{
@@ -161,6 +168,14 @@ svg{
     <button class="btn" onclick="descargarTodos()">
         ⬇ Descargar Todos los Códigos
     </button>
+
+    <button class="btn" onclick="detenerCamara()">
+    ⛔ Detener Cámara
+</button>
+
+<button class="btn" id="btnInstalar" style="display:none;">
+📲 Instalar App
+</button>
 </div>
 
 <div id="reader"></div>
@@ -168,9 +183,7 @@ svg{
 <div id="estado">
     Esperando inicio del escáner...
 </div>
-<button class="btn" onclick="detenerCamara()">
-    ⛔ Detener Cámara
-</button>
+
 
 <div id="resultado">
 
@@ -531,7 +544,90 @@ function descargarTodos(){
     });
 
 }
+/* =========================
+   INSTALAR APP (PWA)
+========================= */
 
+let deferredPrompt;
+
+window.addEventListener(
+    "beforeinstallprompt",
+    (e)=>{
+
+        e.preventDefault();
+
+        deferredPrompt = e;
+
+        const boton =
+        document.getElementById("btnInstalar");
+
+        if(boton){
+            boton.style.display =
+            "inline-block";
+        }
+
+    }
+);
+
+document.addEventListener(
+    "DOMContentLoaded",
+    ()=>{
+
+        const boton =
+        document.getElementById("btnInstalar");
+
+        if(!boton) return;
+
+        boton.addEventListener(
+            "click",
+            async ()=>{
+
+                if(!deferredPrompt) return;
+
+                deferredPrompt.prompt();
+
+                await deferredPrompt.userChoice;
+
+                deferredPrompt = null;
+
+                boton.style.display =
+                "none";
+
+            }
+        );
+
+    }
+);
+
+/* =========================
+   SERVICE WORKER
+========================= */
+
+if("serviceWorker" in navigator){
+
+    window.addEventListener(
+        "load",
+        ()=>{
+
+            navigator.serviceWorker
+            .register("./service-worker.js")
+            .then(()=>{
+
+                console.log(
+                "Service Worker instalado"
+                );
+
+            })
+            .catch(err=>{
+
+                console.error(err);
+
+            });
+
+        }
+    );
+
+}
 </script>
 
 </body>
