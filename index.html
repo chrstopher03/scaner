@@ -213,6 +213,10 @@ svg{
 
 <script>const BASE_IMG = "./";
 
+/* =========================
+   PRODUCTOS
+========================= */
+
 const productos = [
 {
     codigo:"100001",
@@ -286,16 +290,15 @@ const productos = [
     precio:"90",
     imagen: BASE_IMG + "19.jpeg"
 },
-
 {
     codigo:"100013",
-    nombre:"Auto Super Heavy Duty",
+    nombre:"Auto Super Heavy Duty Azul",
     precio:"90",
     imagen: BASE_IMG + "20.jpeg"
 },
 {
     codigo:"100014",
-    nombre:"Movil delvac 10W-30",
+    nombre:"Auto Super Heavy Duty",
     precio:"380",
     imagen: BASE_IMG + "21.jpeg"
 },
@@ -310,102 +313,26 @@ const productos = [
     nombre:"Movil delvac 15W-40.",
     precio:"300",
     imagen: BASE_IMG + "23.jpeg"
-},
-{
-    codigo:"100017",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100018",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100019",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100020",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100021",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100022",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100023",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100024",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100025",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100026",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100027",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100028",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100029",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
-},
-{
-    codigo:"100030",
-    nombre:"l",
-    precio:"",
-    imagen: BASE_IMG + ""
 }
 ];
+
 const catalogo = document.getElementById("catalogo");
 
 /* =========================
-   GENERAR CATÁLOGO
+   NORMALIZAR CÓDIGO
+========================= */
+
+function norm(c){
+    return String(c).trim().replace(/\s+/g,"");
+}
+
+/* =========================
+   CATÁLOGO + BARCODES
 ========================= */
 
 productos.forEach((producto,index)=>{
 
     const card = document.createElement("div");
-
     card.className = "card";
 
     card.innerHTML = `
@@ -421,78 +348,64 @@ productos.forEach((producto,index)=>{
 
     catalogo.appendChild(card);
 
-    JsBarcode(
-        `#barcode${index}`,
-        producto.codigo,
-        {
-            format:"CODE128",
-            width:3,
-            height:100,
-            margin:20,
-            displayValue:true
-        }
-    );
+    JsBarcode(`#barcode${index}`, producto.codigo, {
+        format:"CODE128",
+        width:3,
+        height:90,
+        margin:10,
+        displayValue:true
+    });
 
 });
 
 /* =========================
    MOSTRAR PRODUCTO
 ========================= */
+
 function mostrarProducto(codigo){
 
-    codigo = String(codigo)
-    .trim()
-    .replace(/\s+/g,"");
+    codigo = norm(codigo);
 
     const producto = productos.find(
-        p => String(p.codigo)
-        .trim()
-        .replace(/\s+/g,"") === codigo
+        p => norm(p.codigo) === codigo
     );
 
     if(!producto){
 
         document.getElementById("estado").textContent =
-        "Producto no encontrado: " + codigo;
+        "No encontrado: " + codigo;
 
         return;
     }
 
-    document.getElementById("resultado").style.display =
-    "block";
+    const resultado = document.getElementById("resultado");
+    const foto = document.getElementById("fotoProducto");
 
-    const foto =
-    document.getElementById("fotoProducto");
+    resultado.style.display = "block";
 
-    foto.onerror = function(){
-        this.src = "300.jpeg";
+    foto.onerror = () => {
+        foto.src = "300.jpeg";
     };
 
-    foto.src =
-    producto.imagen +
-    "?v=" +
-    Date.now();
+    foto.src = producto.imagen + "?v=" + Date.now();
 
-    document.getElementById("nombreProducto").textContent =
-    producto.nombre;
-
-    document.getElementById("precioProducto").textContent =
-    "C$ " + producto.precio;
-
-    document.getElementById("codigoProducto").textContent =
-    "Código: " + producto.codigo;
+    document.getElementById("nombreProducto").textContent = producto.nombre;
+    document.getElementById("precioProducto").textContent = "C$ " + producto.precio;
+    document.getElementById("codigoProducto").textContent = producto.codigo;
 
     document.getElementById("estado").textContent =
     "Producto encontrado";
 
+    resultado.scrollIntoView({behavior:"smooth"});
 }
+
 /* =========================
-   ESCÁNER MEJORADO
+   ESCÁNER (FIX DEFINITIVO)
 ========================= */
 
 let iniciado = false;
 let ultimoCodigo = "";
-let detectorRegistrado = false;
+let listenerActivo = false;
 
 function iniciarCamara(){
 
@@ -504,13 +417,10 @@ function iniciarCamara(){
     Quagga.init({
 
         inputStream:{
-            name:"Live",
             type:"LiveStream",
             target:document.querySelector("#reader"),
             constraints:{
-                facingMode:"environment",
-                width:{min:640},
-                height:{min:480}
+                facingMode:"environment"
             }
         },
 
@@ -519,116 +429,70 @@ function iniciarCamara(){
             halfSample:false
         },
 
-        numOfWorkers:4,
-
         decoder:{
             readers:[
                 "code_128_reader",
                 "ean_reader",
                 "ean_8_reader",
-                "upc_reader",
-                "upc_e_reader"
+                "upc_reader"
             ]
         },
 
-        locate:true,
-        frequency:10
+        locate:true
 
     },function(err){
 
         if(err){
-
             console.error(err);
-
             document.getElementById("estado").textContent =
-            "Error iniciando cámara";
-
+            "Error cámara";
             return;
         }
 
-        iniciado = true;
-
         Quagga.start();
+        iniciado = true;
 
         document.getElementById("estado").textContent =
         "Escáner activo";
-
     });
 
-    if(detectorRegistrado) return;
-
-    detectorRegistrado = true;
+    /* evitar múltiples listeners */
+    if(listenerActivo) return;
+    listenerActivo = true;
 
     Quagga.onDetected(function(data){
 
-        if(!data || !data.codeResult) return;
+        if(!data?.codeResult?.code) return;
 
-        let codigo =
-        String(data.codeResult.code)
-        .trim()
-        .replace(/\s+/g,"");
+        let codigo = norm(data.codeResult.code);
 
-        if(!codigo) return;
-
-        if(codigo === ultimoCodigo){
-            return;
-        }
+        if(codigo === ultimoCodigo) return;
 
         ultimoCodigo = codigo;
 
-        console.log("Código detectado:", codigo);
-
-        document.getElementById("estado").textContent =
-        "Código detectado: " + codigo;
-
         mostrarProducto(codigo);
 
-        navigator.vibrate?.(150);
+        navigator.vibrate?.(100);
 
-        setTimeout(()=>{
-            ultimoCodigo = "";
-        },1500);
-
+        setTimeout(()=> ultimoCodigo = "", 1200);
     });
-
 }
-function descargarCodigo(id,codigo){
 
-    const svg =
-    document.getElementById(id);
+/* =========================
+   DETENER
+========================= */
 
-    const datos =
-    new XMLSerializer().serializeToString(svg);
-
-    const enlace =
-    document.createElement("a");
-
-    enlace.href =
-    "data:image/svg+xml;charset=utf-8," +
-    encodeURIComponent(datos);
-
-    enlace.download =
-    codigo + ".svg";
-
-    enlace.click();
-
-}
 function detenerCamara(){
 
     if(!iniciado) return;
 
-    try{
-        Quagga.stop();
-    }catch(e){
-        console.log(e);
-    }
+    Quagga.stop();
 
     iniciado = false;
     ultimoCodigo = "";
 
     document.getElementById("estado").textContent =
     "Cámara detenida";
-
 }
 
 async function descargarTodosPDF() {
