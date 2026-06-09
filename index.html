@@ -12,8 +12,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<script src="JsBarcode.all.min.js"></script>
-<script src="quagga.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://unpkg.com/@ericblade/quagga2/dist/quagga.min.js"></script>
+
 
 <style>
 
@@ -189,9 +191,7 @@ svg{
 
     <div class="detalle">
 
-        <img id="fotoProducto"
-             src="300.jpeg"
-             alt="Producto">
+        <img id="fotoProducto" src="">
 
         <div class="info">
 
@@ -206,132 +206,183 @@ svg{
     </div>
 
 </div>
-
 <h2>Productos</h2>
 
 <div class="grid" id="catalogo"></div>
 
-<script>
-const BASE_IMG = "./";
+<script>const productos = [
 
-/* =========================
-   PRODUCTOS (CORREGIDO)
-========================= */
+{
+    codigo:"100001",
+    nombre:"Mobil Parmazone",
+    precio:"780",
+    imagen:"6.jpeg"
+},
 
-const productos = [
-{ codigo:"100001", nombre:"Mobil Parmazone", precio:"780", imagen: BASE_IMG + "6.jpeg" },
-{ codigo:"100002", nombre:"Mobil Heavy Duty", precio:"780", imagen: BASE_IMG + "7.jpeg" },
-{ codigo:"100003", nombre:"Mobil ATF D/M", precio:"350", imagen: BASE_IMG + "8.jpeg" },
-{ codigo:"100004", nombre:"American Automatic transmission", precio:"180", imagen: BASE_IMG + "11.jpeg" },
-{ codigo:"100005", nombre:"Mobil Delvac Extreme SAE 15W-40 API CK-4.", precio:"1700", imagen: BASE_IMG + "12.jpeg" },
-{ codigo:"100006", nombre:"Mobil Delvac Extreme SAE 10W-30 API CK-4", precio:"2400", imagen: BASE_IMG + "60.jpeg" },
-{ codigo:"100007", nombre:"Motor Oil SAE 50", precio:"140", imagen: BASE_IMG + "14.jpeg" },
-{ codigo:"100008", nombre:"Mobil Super moto", precio:"300", imagen: BASE_IMG + "15.jpeg" },
-{ codigo:"100009", nombre:"Havoline SAE 20W-50", precio:"280", imagen: BASE_IMG + "16.jpeg" },
-{ codigo:"100010", nombre:"TEC Service Power Steering Fluid", precio:"200", imagen: BASE_IMG + "17.jpeg" },
-{ codigo:"100011", nombre:"Havoline 2-cycle", precio:"350", imagen: BASE_IMG + "18.jpeg" },
-{ codigo:"100012", nombre:"Auto Super Heavy Duty Azul", precio:"90", imagen: BASE_IMG + "19.jpeg" },
-{ codigo:"100013", nombre:"Auto Super Heavy Duty Azul", precio:"90", imagen: BASE_IMG + "20.jpeg" },
-{ codigo:"100014", nombre:"Auto Super Heavy Duty", precio:"90", imagen: BASE_IMG + "21.jpeg" },
-{ codigo:"100015", nombre:"Movil delvac 15W-40", precio:"370", imagen: BASE_IMG + "22.jpeg" },
-{ codigo:"100016", nombre:"Movil delvac 15W-40.", precio:"300", imagen: BASE_IMG + "23.jpeg" }
+{
+    codigo:"100002",
+    nombre:"Mobil Heavy Duty",
+    precio:"780",
+    imagen:"7.jpeg"
+},
+
+{
+    codigo:"100003",
+    nombre:"Mobil ATF D/M",
+    precio:"350",
+    imagen:"8.jpeg"
+},
+
+
+{
+    codigo:"100004",
+    nombre:"American Automatic transmission",
+    precio:"180",
+    imagen:"11.jpeg"
+},
+
+{
+    codigo:"100005",
+    nombre:"Mobil Delvac Extreme SAE 15W-40 API CK-4.",
+    precio:"1700",
+    imagen:"12.jpeg"
+},
+
+{
+    codigo:"100006",
+    nombre:"Mobil Delvac Extreme SAE 10W-30 API CK-4 ",
+    precio:"2400",
+    imagen:"60.jpeg"
+},
+
+
+{
+    codigo:"100007",
+    nombre:"Motor Oil SAE 50",
+    precio:"140",
+    imagen:"14.jpeg"
+},
+
+{
+    codigo:"100008",
+    nombre:"Mobil Super moto",
+    precio:"300",
+    imagen:"15.jpeg"
+},
+
+{
+    codigo:"100009",
+    nombre:"Havoline SAE 20W-50",
+    precio:"280",
+    imagen:"16.jpeg"
+},
+
+
+{
+    codigo:"1000010",
+    nombre:"TEC service Power Steering Fluid",
+    precio:"200",
+    imagen:"17.jpeg"
+},
+
+{
+    codigo:"100011",
+    nombre:"Havoline 2-cicle",
+    precio:"350",
+    imagen:"18.jpeg"
+},
+
+{
+    codigo:"100012",
+    nombre:"Auto Super Heavy Duty Azul",
+    precio:"90",
+    imagen:"19.jpeg"
+},
+
+
+{
+    codigo:"100013",
+    nombre:"Auto Super Heavy Duty Azul",
+    precio:"90",
+    imagen:"20.jpeg"
+}
+
 ];
 
 const catalogo = document.getElementById("catalogo");
 
-/* =========================
-   NORMALIZADOR (CLAVE)
-========================= */
-function norm(c){
-    return String(c)
-        .trim()
-        .replace(/\s+/g,"")
-        .replace(/^0+/, ""); // quita ceros basura del escáner
-}
-
-/* =========================
-   CATÁLOGO + BARCODES
-========================= */
-
 productos.forEach((producto,index)=>{
 
     const card = document.createElement("div");
+
     card.className = "card";
 
     card.innerHTML = `
         <h3>${producto.nombre}</h3>
+
         <svg id="barcode${index}"></svg>
+
         <p>${producto.codigo}</p>
 
         <button class="btn"
-        onclick="descargarCodigo('barcode${index}','${producto.codigo}')">
+            onclick="descargarCodigo('barcode${index}','${producto.codigo}')">
             Descargar Código
         </button>
     `;
 
     catalogo.appendChild(card);
 
-    JsBarcode(`#barcode${index}`, producto.codigo, {
-        format:"CODE128",
-        width:3,
-        height:90,
-        margin:10,
-        displayValue:true
-    });
+    JsBarcode(
+        `#barcode${index}`,
+        producto.codigo,
+        {
+            format:"CODE128",
+            width:2,
+            height:80,
+            displayValue:false
+        }
+    );
 
 });
 
-/* =========================
-   MOSTRAR PRODUCTO (FIX REAL)
-========================= */
-
 function mostrarProducto(codigo){
 
-    const code = norm(codigo);
+    const producto =
+    productos.find(p => p.codigo === codigo);
 
-    const producto = productos.find(p => norm(p.codigo) === code);
+    if(!producto) return;
 
-    if(!producto){
-        document.getElementById("estado").textContent =
-        "❌ No encontrado: " + codigo;
-        return;
-    }
+    document.getElementById("resultado").style.display="block";
 
-    const resultado = document.getElementById("resultado");
-    const foto = document.getElementById("fotoProducto");
+    document.getElementById("fotoProducto").src =
+    producto.imagen;
 
-    resultado.style.display = "block";
+    document.getElementById("nombreProducto").textContent =
+    producto.nombre;
 
-    foto.onerror = () => {
-        foto.src = "300.jpeg";
-    };
+    document.getElementById("precioProducto").textContent =
+    "C$ " + producto.precio;
 
-    foto.src = producto.imagen + "?v=" + Date.now();
+    document.getElementById("codigoProducto").textContent =
+    "Código: " + producto.codigo;
 
-    document.getElementById("nombreProducto").textContent = producto.nombre;
-    document.getElementById("precioProducto").textContent = "C$ " + producto.precio;
-    document.getElementById("codigoProducto").textContent = producto.codigo;
+    document.getElementById("resultado")
+    .scrollIntoView({
+        behavior:"smooth"
+    });
 
-    document.getElementById("estado").textContent =
-    "✔ Producto encontrado";
-
-    resultado.scrollIntoView({behavior:"smooth"});
 }
 
-/* =========================
-   ESCÁNER (SIN DOBLES EVENTOS)
-========================= */
-
 let iniciado = false;
-let ultimoCodigo = "";
-let listenerActivo = false;
 
 function iniciarCamara(){
 
     if(iniciado) return;
 
+    iniciado = true;
+
     document.getElementById("estado").textContent =
-    "Iniciando cámara...";
+    "Escáner activo...";
 
     Quagga.init({
 
@@ -343,74 +394,40 @@ function iniciarCamara(){
             }
         },
 
-        locator:{
-            patchSize:"large",
-            halfSample:false
-        },
-
         decoder:{
             readers:[
                 "code_128_reader",
                 "ean_reader",
-                "upc_reader"
+                "ean_8_reader"
             ]
-        },
-
-        locate:true
+        }
 
     },function(err){
 
         if(err){
+
             console.error(err);
+
             document.getElementById("estado").textContent =
-            "Error cámara";
+            "Error iniciando cámara";
+
             return;
         }
 
         Quagga.start();
-        iniciado = true;
 
-        document.getElementById("estado").textContent =
-        "Escáner activo ✔";
     });
-
-    if(listenerActivo) return;
-    listenerActivo = true;
 
     Quagga.onDetected(function(data){
 
-        if(!data?.codeResult?.code) return;
-
-        const codigo = norm(data.codeResult.code);
-
-        if(codigo === ultimoCodigo) return;
-
-        ultimoCodigo = codigo;
+        const codigo = data.codeResult.code;
 
         mostrarProducto(codigo);
 
-        navigator.vibrate?.(100);
-
-        setTimeout(()=> ultimoCodigo = "", 1200);
     });
+
 }
 
-/* =========================
-   DETENER
-========================= */
-
-function detenerCamara(){
-
-    if(!iniciado) return;
-
-    Quagga.stop();
-
-    iniciado = false;
-    ultimoCodigo = "";
-
-    document.getElementById("estado").textContent =
-    "Cámara detenida";
-}
 
 async function descargarTodosPDF() {
 
