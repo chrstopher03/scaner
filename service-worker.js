@@ -3,7 +3,7 @@
    CAMBIAR SOLO LA VERSIÓN
 ================================== */
 
-const VERSION = "v3";
+const VERSION = "v2";
 
 const CACHE_NAME = `scanner-productos-${VERSION}`;
 

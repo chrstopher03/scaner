@@ -70,20 +70,12 @@ h1,h2{
 #reader{
     width:100%;
     max-width:850px;
-    height:140px;
+    height:220px;
     margin:auto;
     overflow:hidden;
     background:#000;
     border:3px solid #00ff00;
     border-radius:12px;
-    position:relative;
-}
-
-#reader video,
-#reader canvas{
-    width:100% !important;
-    height:100% !important;
-    object-fit:cover;
 }
 #estado{
     text-align:center;
@@ -945,9 +937,8 @@ function resetErrorTimer(){
 
     }, 3000);
 }
-
 /* =========================
-   📷 INICIAR CÁMARA ULTRA RÁPIDA
+   📷 INICIAR CÁMARA
 ========================= */
 function iniciarCamara(){
 
@@ -967,41 +958,21 @@ function iniciarCamara(){
             type: "LiveStream",
             target: document.querySelector("#reader"),
 
-            area: {
-                top: "35%",
-                right: "0%",
-                left: "0%",
-                bottom: "35%"
-            },
-
             constraints: {
-                facingMode: {
-                    ideal: "environment"
-                },
-                width: {
-                    ideal: 1280
-                },
-                height: {
-                    ideal: 720
-                },
-                frameRate: {
-                    ideal: 60,
-                    max: 60
-                }
+                facingMode: "environment",
+                width: 1280,
+                height: 720
             }
         },
 
         locator: {
-            halfSample: false,
-            patchSize: "x-small"
+            halfSample: true,
+            patchSize: "medium"
         },
 
-        numOfWorkers:
-            navigator.hardwareConcurrency || 4,
+        numOfWorkers: navigator.hardwareConcurrency || 4,
 
-        frequency: 60,
-
-        locate: true,
+        frequency: 20,
 
         decoder: {
             readers: [
@@ -1009,45 +980,37 @@ function iniciarCamara(){
                 "ean_reader",
                 "ean_8_reader"
             ]
-        }
+        },
+
+        locate: true
 
     }, function(err){
 
         if(err){
-
             console.error(err);
-
             document.getElementById("estado").textContent =
             "Error iniciando cámara";
-
             iniciado = false;
-
             return;
         }
 
         Quagga.start();
 
         document.getElementById("estado").textContent =
-        "Apunte al código de barras";
+        "Apunte al código";
 
         resetErrorTimer();
     });
 
-    /* =========================
-       🚨 DETECCIÓN
-    ========================= */
     Quagga.onDetected(function(data){
 
         if(bloqueado) return;
 
-        const codigo =
-            data?.codeResult?.code;
+        const codigo = data.codeResult.code;
 
         if(!codigo) return;
 
         const ahora = Date.now();
-
-        resetErrorTimer();
 
         if(
             codigo === ultimoCodigo &&
@@ -1074,13 +1037,11 @@ function iniciarCamara(){
         mostrarProducto(codigo);
 
         setTimeout(() => {
-
-            bloqueado = false;
-
             iniciarCamara();
+        }, 1000);
 
-        }, 800);
     });
+
 }
 async function descargarTodosPDF() {
 
@@ -1179,7 +1140,7 @@ async function descargarTodosPDF() {
    VERSION APP
 ========================= */
 
-const APP_VERSION = "1.0.1";
+const APP_VERSION = "1.0.2";
 
 /* =========================
    INSTALAR APP (PWA)
