@@ -70,14 +70,21 @@ h1,h2{
 #reader{
     width:100%;
     max-width:850px;
-    height:350px;
+    height:140px;
     margin:auto;
-    border:4px solid #222;
-    border-radius:12px;
     overflow:hidden;
     background:#000;
+    border:3px solid #00ff00;
+    border-radius:12px;
+    position:relative;
 }
 
+#reader video,
+#reader canvas{
+    width:100% !important;
+    height:100% !important;
+    object-fit:cover;
+}
 #estado{
     text-align:center;
     margin-top:10px;
@@ -160,16 +167,16 @@ svg{
     overflow: hidden;
 }
 
-#scanline {
-    position: absolute;
-    width: 100%;
-    height: 3px;
-    background: red;
-    animation: scanMove 1.5s linear infinite;
-    z-index: 999;
-    box-shadow: 0 0 10px red;
+#scanline{
+    position:absolute;
+    left:0;
+    width:100%;
+    height:2px;
+    background:red;
+    box-shadow:0 0 10px red;
+    animation:scanMove 1.2s linear infinite;
+    z-index:999;
 }
-
 @keyframes scanMove {
     0% { top: 0%; }
     100% { top: 100%; }
@@ -939,39 +946,62 @@ function resetErrorTimer(){
     }, 3000);
 }
 
-
 /* =========================
    📷 INICIAR CÁMARA ULTRA RÁPIDA
 ========================= */
 function iniciarCamara(){
 
     if(iniciado) return;
+
     iniciado = true;
     bloqueado = false;
 
-    document.getElementById("estado").textContent = "Escaneando...";
+    document.getElementById("estado").textContent =
+    "Escaneando...";
+
+    Quagga.offDetected();
 
     Quagga.init({
 
         inputStream: {
             type: "LiveStream",
             target: document.querySelector("#reader"),
+
+            area: {
+                top: "35%",
+                right: "0%",
+                left: "0%",
+                bottom: "35%"
+            },
+
             constraints: {
-                facingMode: "environment",
-                width: 1920,
-                height: 1080,
-                frameRate: { ideal: 60 }
+                facingMode: {
+                    ideal: "environment"
+                },
+                width: {
+                    ideal: 1280
+                },
+                height: {
+                    ideal: 720
+                },
+                frameRate: {
+                    ideal: 60,
+                    max: 60
+                }
             }
         },
 
         locator: {
-            halfSample: true,
-            patchSize: "tiny"
+            halfSample: false,
+            patchSize: "x-small"
         },
 
-        numOfWorkers: navigator.hardwareConcurrency || 4,
+        numOfWorkers:
+            navigator.hardwareConcurrency || 4,
 
-        frequency: 25,
+        frequency: 60,
+
+        locate: true,
 
         decoder: {
             readers: [
@@ -984,16 +1014,24 @@ function iniciarCamara(){
     }, function(err){
 
         if(err){
+
             console.error(err);
+
             document.getElementById("estado").textContent =
             "Error iniciando cámara";
+
+            iniciado = false;
+
             return;
         }
 
         Quagga.start();
+
+        document.getElementById("estado").textContent =
+        "Apunte al código de barras";
+
         resetErrorTimer();
     });
-
 
     /* =========================
        🚨 DETECCIÓN
@@ -1002,12 +1040,19 @@ function iniciarCamara(){
 
         if(bloqueado) return;
 
-        const codigo = data.codeResult.code;
+        const codigo =
+            data?.codeResult?.code;
+
+        if(!codigo) return;
+
         const ahora = Date.now();
 
         resetErrorTimer();
 
-        if(codigo === ultimoCodigo && (ahora - ultimoTiempo) < 1200){
+        if(
+            codigo === ultimoCodigo &&
+            (ahora - ultimoTiempo) < 1200
+        ){
             return;
         }
 
@@ -1019,14 +1064,22 @@ function iniciarCamara(){
         beepOk();
         vibrar();
 
+        document.getElementById("estado").textContent =
+        "Código detectado: " + codigo;
+
         Quagga.stop();
+
         iniciado = false;
 
         mostrarProducto(codigo);
 
-        setTimeout(()=>{
+        setTimeout(() => {
+
+            bloqueado = false;
+
             iniciarCamara();
-        }, 900);
+
+        }, 800);
     });
 }
 async function descargarTodosPDF() {
@@ -1126,7 +1179,7 @@ async function descargarTodosPDF() {
    VERSION APP
 ========================= */
 
-const APP_VERSION = "1.0.2";
+const APP_VERSION = "1.0.1";
 
 /* =========================
    INSTALAR APP (PWA)
